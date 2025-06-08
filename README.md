@@ -58,6 +58,20 @@ This project is a Polkadot version of the Uniswap V2 Solidity library with the f
    - `fullMul`: Optimized `mulmod` operation with `unchecked` block
    - `fullDiv`: Enhanced division operations with `unchecked` blocks
 
+### FixedPoint.sol Specific Changes
+
+1. uint112 Boundary Handling
+
+   - Fixed handling of maximum uint112 value (2^112 - 1)
+   - Ensured proper type conversion in encode function
+   - Added validation for uint112 range limits
+
+2. Value Range Validation
+
+   - Implemented strict bounds checking for Q112.112 format
+   - Fixed overflow issues in encoding/decoding operations
+   - Enhanced error handling for out-of-range values
+
 ### Reasons for Changes
 
 1. Improved code security

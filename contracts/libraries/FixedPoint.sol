@@ -51,11 +51,13 @@ library FixedPoint {
         uq112x112 memory self,
         uint256 y
     ) internal pure returns (uq144x112 memory) {
-        uint256 z = 0;
-        require(
-            y == 0 || (z = self._x * y) / y == self._x,
-            "FixedPoint::mul: overflow"
-        );
+        uint256 z;
+        unchecked {
+            z = self._x * y;
+            if (y != 0 && z / y != self._x) {
+                revert("FixedPoint::mul: overflow");
+            }
+        }
         return uq144x112(z);
     }
 
@@ -65,8 +67,13 @@ library FixedPoint {
         uq112x112 memory self,
         int256 y
     ) internal pure returns (int256) {
-        uint256 z = FullMath.mulDiv(self._x, uint256(y < 0 ? -y : y), Q112);
-        require(z < 2 ** 255, "FixedPoint::muli: overflow");
+        uint256 z;
+        unchecked {
+            z = FullMath.mulDiv(self._x, uint256(y < 0 ? -y : y), Q112);
+            if (z >= 2 ** 255) {
+                revert("FixedPoint::muli: overflow");
+            }
+        }
         return y < 0 ? -int256(z) : int256(z);
     }
 

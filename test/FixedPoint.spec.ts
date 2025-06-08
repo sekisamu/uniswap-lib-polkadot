@@ -22,7 +22,13 @@ describe("FixedPoint", function () {
     });
 
     it("will not take >uint112(-1)", async function () {
-      await expect(fixedPoint.encode(ethers.getBigInt(2) ** ethers.getBigInt(113) - ethers.getBigInt(1))).to.be.reverted;
+      const value = ethers.getBigInt(2) ** ethers.getBigInt(113) - ethers.getBigInt(1);
+      try {
+        await fixedPoint.encode(value);
+        expect.fail("Should have thrown an error");
+      } catch (error: any) {
+        expect(error.message).to.include("value out-of-bounds");
+      }
     });
   });
 
@@ -32,7 +38,13 @@ describe("FixedPoint", function () {
     });
 
     it("will not take >uint144(-1)", async function () {
-      await expect(fixedPoint.encode144(ethers.getBigInt(2) ** ethers.getBigInt(145) - ethers.getBigInt(1))).to.be.reverted;
+      const value = ethers.getBigInt(2) ** ethers.getBigInt(145) - ethers.getBigInt(1);
+      try {
+        await fixedPoint.encode144(value);
+        expect.fail("Should have thrown an error");
+      } catch (error: any) {
+        expect(error.message).to.include("value out-of-bounds");
+      }
     });
   });
 
@@ -42,7 +54,13 @@ describe("FixedPoint", function () {
     });
 
     it("will not take >uint224(-1)", async function () {
-      await expect(fixedPoint.decode([ethers.getBigInt(2) ** ethers.getBigInt(225) - ethers.getBigInt(1)])).to.be.reverted;
+      const value = ethers.getBigInt(2) ** ethers.getBigInt(225) - ethers.getBigInt(1);
+      try {
+        await fixedPoint.decode([value]);
+        expect.fail("Should have thrown an error");
+      } catch (error: any) {
+        expect(error.message).to.include("value out-of-bounds");
+      }
     });
   });
 
@@ -52,7 +70,13 @@ describe("FixedPoint", function () {
     });
 
     it("will not take >uint256(-1)", async function () {
-      await expect(fixedPoint.decode([ethers.getBigInt(2) ** ethers.getBigInt(257) - ethers.getBigInt(1)])).to.be.reverted;
+      const value = ethers.getBigInt(2) ** ethers.getBigInt(257) - ethers.getBigInt(1);
+      try {
+        await fixedPoint.decode([value]);
+        expect.fail("Should have thrown an error");
+      } catch (error: any) {
+        expect(error.message).to.include("value out-of-bounds");
+      }
     });
   });
 
@@ -93,7 +117,9 @@ describe("FixedPoint", function () {
     it("max without overflow, smallest fixed point", async function () {
       const maxUint = ethers.getBigInt(2) ** ethers.getBigInt(256) - ethers.getBigInt(1);
       expect((await fixedPoint.mul([ethers.getBigInt(1)], maxUint))[0]).to.eq(maxUint);
-      await expect(fixedPoint.mul([ethers.getBigInt(2)], maxUint)).to.be.revertedWith("FixedPoint::mul: overflow");
+      await expect(fixedPoint.mul([ethers.getBigInt(2)], maxUint)).to.be.revertedWith(
+        "FixedPoint::mul: overflow"
+      );
     });
   });
 
