@@ -1,63 +1,49 @@
-import chai, {expect} from 'chai'
-import {Contract, BigNumber, constants} from 'ethers'
-import {solidity, MockProvider, deployContract} from 'ethereum-waffle'
+import { expect } from "chai";
+import { ethers } from "hardhat";
 
-import FullMathTest from '../build/FullMathTest.json'
+describe("FullMath", function () {
+  let fm: any;
 
-chai.use(solidity)
+  beforeEach(async function () {
+    const FullMathTest = await ethers.getContractFactory("FullMathTest");
+    fm = await FullMathTest.deploy();
+    await fm.waitForDeployment();
+  });
 
-const overrides = {
-  gasLimit: 9999999,
-}
+  describe("#mulDiv", function () {
+    const Q128 = ethers.getBigInt(2) ** ethers.getBigInt(128);
 
-describe('FullMath', () => {
-  const provider = new MockProvider({
-    ganacheOptions: {
-      hardfork: 'istanbul',
-      mnemonic: 'horn horn horn horn horn horn horn horn horn horn horn horn',
-      gasLimit: 9999999,
-    },
-  })
-  const [wallet] = provider.getWallets()
-
-  let fm: Contract
-  before('deploy FullMathTest', async () => {
-    fm = await deployContract(wallet, FullMathTest, [], overrides)
-  })
-
-  describe('#mulDiv', () => {
-    const Q128 = BigNumber.from(2).pow(128)
-    it('accurate without phantom overflow', async () => {
-      const result = Q128.div(3)
+    it("accurate without phantom overflow", async function () {
+      const result = Q128 / ethers.getBigInt(3);
       expect(
         await fm.mulDiv(
           Q128,
-          /*0.5=*/ BigNumber.from(50).mul(Q128).div(100),
-          /*1.5=*/ BigNumber.from(150).mul(Q128).div(100)
+          /*0.5=*/ (ethers.getBigInt(50) * Q128) / ethers.getBigInt(100),
+          /*1.5=*/ (ethers.getBigInt(150) * Q128) / ethers.getBigInt(100)
         )
-      ).to.eq(result)
+      ).to.eq(result);
 
       expect(
         await fm.mulDivRoundingUp(
           Q128,
-          /*0.5=*/ BigNumber.from(50).mul(Q128).div(100),
-          /*1.5=*/ BigNumber.from(150).mul(Q128).div(100)
+          /*0.5=*/ (ethers.getBigInt(50) * Q128) / ethers.getBigInt(100),
+          /*1.5=*/ (ethers.getBigInt(150) * Q128) / ethers.getBigInt(100)
         )
-      ).to.eq(result.add(1))
-    })
+      ).to.eq(result + ethers.getBigInt(1));
+    });
 
-    it('accurate with phantom overflow', async () => {
-      const result = BigNumber.from(4375).mul(Q128).div(1000)
-      expect(await fm.mulDiv(Q128, BigNumber.from(35).mul(Q128), BigNumber.from(8).mul(Q128))).to.eq(result)
-      expect(await fm.mulDivRoundingUp(Q128, BigNumber.from(35).mul(Q128), BigNumber.from(8).mul(Q128))).to.eq(result)
-    })
+    it("accurate with phantom overflow", async function () {
+      const result = (ethers.getBigInt(4375) * Q128) / ethers.getBigInt(1000);
+      expect(await fm.mulDiv(Q128, ethers.getBigInt(35) * Q128, ethers.getBigInt(8) * Q128)).to.eq(result);
+      expect(await fm.mulDivRoundingUp(Q128, ethers.getBigInt(35) * Q128, ethers.getBigInt(8) * Q128)).to.eq(result);
+    });
 
-    it('accurate with phantom overflow and repeating decimal', async () => {
-      const result = BigNumber.from(1).mul(Q128).div(3)
-      expect(await fm.mulDiv(Q128, BigNumber.from(1000).mul(Q128), BigNumber.from(3000).mul(Q128))).to.eq(result)
-      expect(await fm.mulDivRoundingUp(Q128, BigNumber.from(1000).mul(Q128), BigNumber.from(3000).mul(Q128))).to.eq(
-        result.add(1)
-      )
-    })
-  })
-})
+    it("accurate with phantom overflow and repeating decimal", async function () {
+      const result = (ethers.getBigInt(1) * Q128) / ethers.getBigInt(3);
+      expect(await fm.mulDiv(Q128, ethers.getBigInt(1000) * Q128, ethers.getBigInt(3000) * Q128)).to.eq(result);
+      expect(await fm.mulDivRoundingUp(Q128, ethers.getBigInt(1000) * Q128, ethers.getBigInt(3000) * Q128)).to.eq(
+        result + ethers.getBigInt(1)
+      );
+    });
+  });
+});
