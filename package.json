@@ -1,5 +1,5 @@
 {
-  "name": "deterministic-deploy-polkadot",
+  "name": "uniswap-lib-polkadot",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
